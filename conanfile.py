@@ -60,6 +60,8 @@ class VulkanValidationLayersConan(ConanFile):
         for patch in self.conan_data.get("patches", {}).get(self.version, []):
             tools.patch(**patch)
         tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"),
+                              "add_compile_options(-Werror)", "")
+        tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"),
                               'add_compile_options("/WX")', "")
         tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"),
                               'add_compile_options("/GR-")', "")
