@@ -1,4 +1,5 @@
 from conans import ConanFile, CMake, tools
+from conans.errors import ConanInvalidConfiguration
 import glob
 import os
 
@@ -40,6 +41,8 @@ class VulkanValidationLayersConan(ConanFile):
     def configure(self):
         if self.settings.compiler.get_safe("cppstd"):
             tools.check_min_cppstd(self, 11)
+        if self.settings.compiler == "gcc" and tools.Version(self.settings.compiler.vertion) < "5":
+            raise ConanInvalidConfiguration("gcc < 5 is not supported")
 
     def requirements(self):
         self.requires("glslang/8.13.3559")
