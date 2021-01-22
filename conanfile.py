@@ -4,7 +4,7 @@ import os
 
 
 class VulkanValidationLayersConan(ConanFile):
-    name = "vulkan-validation-layers"
+    name = "vulkan-validationlayers"
     description = "Khronos official Vulkan validation layers for Windows, Linux, Android, and MacOS."
     license = "Apache-2.0"
     topics = ("conan", "vulkan-validation-layers", "vulkan", "validation-layers")
