@@ -37,6 +37,10 @@ class VulkanValidationLayersConan(ConanFile):
             del self.options.with_wsi_xlib
             del self.options.with_wsi_wayland
 
+    def configure(self):
+        if self.settings.compiler.get_safe("cppstd"):
+            tools.check_min_cppstd(self, 11)
+
     def requirements(self):
         self.requires("glslang/8.13.3559")
         self.requires("spirv-tools/v2020.5")
