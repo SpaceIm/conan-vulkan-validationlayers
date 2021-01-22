@@ -41,7 +41,7 @@ class VulkanValidationLayersConan(ConanFile):
     def configure(self):
         if self.settings.compiler.get_safe("cppstd"):
             tools.check_min_cppstd(self, 11)
-        if self.settings.compiler == "gcc" and tools.Version(self.settings.compiler.vertion) < "5":
+        if self.settings.compiler == "gcc" and tools.Version(self.settings.compiler.version) < "5":
             raise ConanInvalidConfiguration("gcc < 5 is not supported")
 
     def requirements(self):
