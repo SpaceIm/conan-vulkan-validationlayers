@@ -24,6 +24,8 @@ class VulkanValidationLayersConan(ConanFile):
         "with_wsi_wayland": True
     }
 
+    short_paths = True
+
     exports_sources = ["CMakeLists.txt", "patches/**"]
     generators = "cmake"
     _cmake = None
