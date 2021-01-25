@@ -110,6 +110,6 @@ class VulkanValidationLayersConan(ConanFile):
         if not tools.is_apple_os(self.settings.os):
             self.cpp_info.libs = ["VkLayer_utils"]
 
-        vk_layer_path = os.path.join(self.package_folder, "bin")
+        vk_layer_path = os.path.join(self.package_folder, "lib")
         self.output.info("Appending VK_LAYER_PATH environment variable: {}".format(vk_layer_path))
         self.env_info.VK_LAYER_PATH.append(vk_layer_path)
