@@ -108,3 +108,7 @@ class VulkanValidationLayersConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
+
+        vk_layer_path = os.path.join(self.package_folder, "bin")
+        self.output.info("Appending VK_LAYER_PATH environment variable: {}".format(vk_layer_path))
+        self.env_info.VK_LAYER_PATH.append(vk_layer_path)
