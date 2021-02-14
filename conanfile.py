@@ -1,10 +1,12 @@
 from conans import ConanFile, CMake, tools
+from conans.errors import ConanInvalidConfiguration
 import glob
 import os
+import shutil
 
 
 class VulkanValidationLayersConan(ConanFile):
-    name = "vulkan-validation-layers"
+    name = "vulkan-validationlayers"
     description = "Khronos official Vulkan validation layers for Windows, Linux, Android, and MacOS."
     license = "Apache-2.0"
     topics = ("conan", "vulkan-validation-layers", "vulkan", "validation-layers")
@@ -23,6 +25,8 @@ class VulkanValidationLayersConan(ConanFile):
         "with_wsi_wayland": True
     }
 
+    short_paths = True
+
     exports_sources = ["CMakeLists.txt", "patches/**"]
     generators = "cmake"
     _cmake = None
@@ -36,6 +40,12 @@ class VulkanValidationLayersConan(ConanFile):
             del self.options.with_wsi_xcb
             del self.options.with_wsi_xlib
             del self.options.with_wsi_wayland
+
+    def configure(self):
+        if self.settings.compiler.get_safe("cppstd"):
+            tools.check_min_cppstd(self, 11)
+        if self.settings.compiler == "gcc" and tools.Version(self.settings.compiler.version) < "5":
+            raise ConanInvalidConfiguration("gcc < 5 is not supported")
 
     def requirements(self):
         self.requires("glslang/8.13.3559")
@@ -59,6 +69,8 @@ class VulkanValidationLayersConan(ConanFile):
     def _patch_sources(self):
         for patch in self.conan_data.get("patches", {}).get(self.version, []):
             tools.patch(**patch)
+        tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"),
+                              "add_compile_options(-Werror)", "")
         tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"),
                               'add_compile_options("/WX")', "")
         tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"),
@@ -86,7 +98,7 @@ class VulkanValidationLayersConan(ConanFile):
         self._cmake.definitions["BUILD_TESTS"] = False
         self._cmake.definitions["INSTALL_TESTS"] = False
         self._cmake.definitions["BUILD_LAYERS"] = True
-        self._cmake.definitions["BUILD_LAYER_SUPPORT_FILES"] = False
+        self._cmake.definitions["BUILD_LAYER_SUPPORT_FILES"] = True
         self._cmake.configure()
         return self._cmake
 
@@ -94,6 +106,25 @@ class VulkanValidationLayersConan(ConanFile):
         self.copy("LICENSE.txt", dst="licenses", src=self._source_subfolder)
         cmake = self._configure_cmake()
         cmake.install()
+        # Move several files, but it's important to preserve relative path
+        # between module library and manifest json file
+        if self.settings.os == "Windows":
+            bin_dir = os.path.join(self.package_folder, "bin")
+            lib_dir = os.path.join(self.package_folder, "lib")
+            # import lib is useless, validation layer dll is loaded at runtime
+            os.remove(os.path.join(lib_dir, "VkLayer_khronos_validation.lib"))
+            # move dll and manifest file in bin folder
+            tools.mkdir(bin_dir)
+            for validation_layer in glob.glob(os.path.join(lib_dir, "VkLayer_khronos_validation.*")):
+                layer_filename = os.path.basename(validation_layer)
+                shutil.move(validation_layer, os.path.join(bin_dir, layer_filename))
+        else:
+            os.rename(os.path.join(self.package_folder, "share"), os.path.join(self.package_folder, "res"))
 
     def package_info(self):
-        self.cpp_info.libs = tools.collect_libs(self)
+        self.cpp_info.libs = ["VkLayer_utils"]
+
+        manifest_subfolder = "bin" if self.settings.os == "Windows" else os.path.join("res", "vulkan", "explicit_layer.d")
+        vk_layer_path = os.path.join(self.package_folder, manifest_subfolder)
+        self.output.info("Appending VK_LAYER_PATH environment variable: {}".format(vk_layer_path))
+        self.env_info.VK_LAYER_PATH.append(vk_layer_path)
