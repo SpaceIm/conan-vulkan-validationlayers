@@ -85,10 +85,10 @@ class VulkanValidationLayersConan(ConanFile):
                               "HINTS ${VULKAN_HEADERS_INSTALL_DIR}/res/vulkan/registry")
         tools.replace_in_file(os.path.join(self._source_subfolder, "layers", "CMakeLists.txt"),
                               "install(FILES ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${TARGET_NAME}.json DESTINATION ${CMAKE_INSTALL_LIBDIR})",
-                              "install(FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET_NAME}.json DESTINATION ${CMAKE_INSTALL_LIBDIR})")
+                              "install(FILES $<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}.json DESTINATION ${CMAKE_INSTALL_LIBDIR})")
         tools.replace_in_file(os.path.join(self._source_subfolder, "layers", "CMakeLists.txt"),
                               "install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.json DESTINATION ${CMAKE_INSTALL_LIBDIR})",
-                              "install(FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET_NAME}.json DESTINATION ${CMAKE_INSTALL_LIBDIR})")
+                              "install(FILES $<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}.json DESTINATION ${CMAKE_INSTALL_LIBDIR})")
 
     def _configure_cmake(self):
         if self._cmake:
